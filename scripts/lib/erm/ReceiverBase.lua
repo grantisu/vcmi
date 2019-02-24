@@ -1,7 +1,7 @@
 local ReceiverBase = {}
 
 function ReceiverBase:new()
-	o = {}
+	local o = {}
 	setmetatable(o, self)
 	self.__index = self
 	return o

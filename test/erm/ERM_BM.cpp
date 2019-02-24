@@ -56,5 +56,41 @@ TEST_F(ERM_BM, GetAttack)
 	EXPECT_EQ(actualState["ERM"]["v"]["1"].Float(), ATTACK_VALUE);
 }
 
+TEST_F(ERM_BM, SetAttack)
+{
+	const int32_t ATTACK_VALUE = 345;
+	const uint32_t UNIT_ID = 42;
+
+	battle::UnitFake & unit1 = unitsFake.add(0);
+
+	EXPECT_CALL(binfoMock, battleGetUnitByID(Eq(UNIT_ID))).WillOnce(Return(&unit1));
+
+	auto checkApply = [&](SetStackEffect * pack)
+	{
+		EXPECT_TRUE(pack->toUpdate.empty());
+		EXPECT_TRUE(pack->toRemove.empty());
+		GTEST_ASSERT_EQ(pack->toAdd.size(), 1);
+		GTEST_ASSERT_EQ(pack->toAdd.back().second.size(), 1);
+
+		EXPECT_EQ(pack->toAdd.back().first, UNIT_ID);
+
+		const Bonus & actual = pack->toAdd.back().second.back();
+
+	};
+
+	EXPECT_CALL(serverMock, apply(Matcher<SetStackEffect *>(_))).WillOnce(Invoke(checkApply));
+
+	unitsFake.setDefaultBonusExpectations();
+
+	std::stringstream source;
+	source << "VERM" << std::endl;
+	source << "!?PI;" << std::endl;
+	source << "!!BM"<<UNIT_ID<<":A"<<ATTACK_VALUE<<";" << std::endl;
+
+	loadScript(VLC->scriptHandler->erm, source.str());
+	SCOPED_TRACE("\n" + subject->code);
+	run();
+}
+
 }
 }

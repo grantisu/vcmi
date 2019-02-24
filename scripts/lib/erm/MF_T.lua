@@ -1,6 +1,6 @@
 local TriggerBase = require("core:erm.TriggerBase")
 
-local trigger = TriggerBase.create()
+local trigger = TriggerBase:new()
 
 local eventBus = EVENT_BUS;
 

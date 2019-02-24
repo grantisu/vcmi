@@ -1,3 +1,6 @@
+--local TriggerBase = require("core:erm.TriggerBase")
+--local ReceiverBase = require("core:erm.ReceiverBase")
+
 DATA = DATA or {}
 
 local ERM = {}
@@ -6,15 +9,20 @@ local DATA = DATA
 
 DATA.ERM = DATA.ERM or {}
 
+local ERM_MT =
+{
+	__index = DATA.ERM
+}
+
+setmetatable(ERM, ERM_MT)
+
 DATA.ERM.flag = DATA.ERM.flag or {}
 DATA.ERM.quick = DATA.ERM.quick or {}
 DATA.ERM.v = DATA.ERM.v or {}
 DATA.ERM.z = DATA.ERM.z or {}
 
-ERM.flag = DATA.ERM.flag
-ERM.quick = DATA.ERM.quick
-ERM.v = DATA.ERM.v
-ERM.z = DATA.ERM.z
+--TriggerBase.ERM = ERM
+--ReceiverBase.ERM = ERM
 
 local y = {}
 
@@ -27,12 +35,10 @@ local Receivers = {}
 
 local function createReceiverLoader(name)
 	local loader = function(x, ...)
-		if not Receivers[name] then
-			Receivers[name] = require("core:erm."..name)
-			Receivers[name].ERM = ERM
-		end
-		local receiver = Receivers[name]:new(x, ...)
-		return receiver
+		Receivers[name] = Receivers[name] or require("core:erm."..name)
+		local o = Receivers[name]:new(x, ...)
+		o.ERM = ERM
+		return o
 	end
 	return loader
 end
@@ -47,10 +53,8 @@ local Triggers = {}
 local function createTriggerLoader(name)
 	local loader = function(...)
 		Triggers[name] = Triggers[name] or require("core:erm."..name.."_T")
-
-		local trigger = Triggers[name]
-		trigger.ERM = ERM
-		return trigger
+		Triggers[name].ERM = ERM
+		return Triggers[name]
 	end
 	return loader
 end
@@ -61,7 +65,7 @@ TriggerLoaders.PI = createTriggerLoader("PI")
 TriggerLoaders.MF = createTriggerLoader("MF")
 
 
-ERM.addTrigger = function(self, t)
+function ERM:addTrigger(t)
 	local name = t.name
 	local fn = t.fn
 
@@ -70,7 +74,7 @@ ERM.addTrigger = function(self, t)
 	table.insert(trigger.fn, fn)
 end
 
-ERM.callInstructions = function(self, cb)
+function ERM:callInstructions(cb)
 	if not DATA.ERM.instructionsCalled then
 		cb()
 		self:callTrigger("PI")
@@ -78,7 +82,7 @@ ERM.callInstructions = function(self, cb)
 	end
 end
 
-ERM.callTrigger = function(self, name)
+function ERM:callTrigger(name)
 	local trigger = TriggerLoaders[name]()
 	trigger:call()
 end
