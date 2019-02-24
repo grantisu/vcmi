@@ -393,6 +393,7 @@ namespace ERMConverter
 				break;
 			case ':':
 				opcode = "/";
+				break;
 			default:
 				throw EInterpreterError("Wrong opcode in VR arithmetic!");
 				break;
